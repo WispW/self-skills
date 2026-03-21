@@ -159,8 +159,37 @@ refactor(database): 重构数据库连接池管理
 ```bash
 # 1. 将commit消息写入临时文件（UTF-8编码）
 # 2. 使用 -F 参数从文件读取commit消息
+#    ⚠️ 注意：必须在 git add 之后、git commit 之前创建 temp.txt
+#    这样 temp.txt 不会被 git add 纳入暂存区
 git commit -F temp.txt
 # 3. 提交完成后删除临时文件
+rm temp.txt
+```
+
+### ⚠️ 严禁：temp.txt 误提交问题
+
+**已知错误模式**：先创建 temp.txt → 再执行 git add . → 导致 temp.txt 被纳入暂存区并随代码一起提交。
+
+**正确操作顺序（必须严格遵守）**：
+```bash
+# 1. 先暂存代码变更
+git add .
+# 2. 暂存完成后，再创建 temp.txt（此时 temp.txt 不在暂存区中）
+# 3. 执行提交
+git commit -F temp.txt
+# 4. 删除临时文件
+rm temp.txt
+```
+
+**如果 temp.txt 已被误提交，严禁用"删除文件+再提交一次"的方式修复。正确做法是撤销错误提交并重新提交**：
+```bash
+# 1. 回退错误的提交（保留代码更改）
+git reset --soft HEAD~1
+# 2. 将 temp.txt 移出暂存区
+git reset HEAD temp.txt
+# 3. 重新提交（此时暂存区中不含 temp.txt）
+git commit -F temp.txt
+# 4. 删除临时文件
 rm temp.txt
 ```
 
