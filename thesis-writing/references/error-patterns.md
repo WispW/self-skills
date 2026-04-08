@@ -2,6 +2,8 @@
 
 > 改编自 [thesis-harness](https://github.com/AlbanLi0314/thesis-harness) 的 33 种错误模式，
 > 结合中文本科毕业论文写作场景定制。
+>
+> **关联文档**：如需检测和消除 AI 写作痕迹（去 AI 味），请参阅 [deai-patterns.md](./deai-patterns.md)。
 
 ---
 
