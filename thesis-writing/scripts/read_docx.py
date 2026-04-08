@@ -11,8 +11,15 @@ read_docx.py —— 从 .docx 文件中提取内容与格式信息
 """
 
 import argparse
+import io
 import sys
 from pathlib import Path
+
+# Windows 终端默认 GBK 编码，强制 stdout/stderr 使用 UTF-8 避免 UnicodeEncodeError
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if sys.stderr.encoding and sys.stderr.encoding.lower() != "utf-8":
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 try:
     from docx import Document
@@ -247,6 +254,7 @@ def main():
     parser.add_argument("file", help="Word 文档路径（.docx）")
     parser.add_argument("--mode", choices=["content", "format", "all"],
                         default="all", help="提取模式（默认 all）")
+    parser.add_argument("--output", "-o", help="输出到文件（UTF-8 编码），不指定则输出到终端")
     args = parser.parse_args()
 
     filepath = Path(args.file)
@@ -258,14 +266,25 @@ def main():
 
     doc = Document(str(filepath))
 
+    parts = []
     if args.mode in ("content", "all"):
-        print(extract_content(doc))
+        parts.append(extract_content(doc))
 
     if args.mode == "all":
-        print("\n")
+        parts.append("")
 
     if args.mode in ("format", "all"):
-        print(extract_format(doc))
+        parts.append(extract_format(doc))
+
+    result = "\n".join(parts)
+
+    if args.output:
+        # 写入文件，避免终端编码问题
+        out_path = Path(args.output)
+        out_path.write_text(result, encoding="utf-8")
+        print(f"已输出到: {out_path}")
+    else:
+        print(result)
 
 
 if __name__ == "__main__":
